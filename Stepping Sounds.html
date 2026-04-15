@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stepping Sounds: Music Theory Masterclass</title>
+    <style>
+        /* --- CSS VARIABLES & RESET --- */
+        :root {
+            --primary: #6C63FF; /* Indigo */
+            --primary-dark: #3f3da1;
+            --secondary: #00D2D3; /* Teal */
+            --accent: #FF6B6B; /* Coral */
+            --warning: #feca57; /* Amber */
+            --dark: #2F3640;
+            --glass: rgba(255, 255, 255, 0.95);
+            --glass-hover: rgba(255, 255, 255, 1);
+            --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            font-family: var(--font-main); 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Deep Purple/Blue Gradient */
+            color: var(--dark); 
+            line-height: 1.6; 
+            padding-bottom: 50px; 
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* --- BACKGROUND ANIMATION (FLOATING NOTES) --- */
+        .notes-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0;
+            overflow: hidden;
+        }
+        .note-icon {
+            position: absolute; display: block; font-size: 4rem; color: rgba(255,255,255,0.1); bottom: -100px;
+            animation: floatUp 15s linear infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+        }
+        /* Stagger animations */
+        .note-icon:nth-child(1) { left: 10%; animation-duration: 12s; animation-delay: 0s; }
+        .note-icon:nth-child(2) { left: 30%; animation-duration: 18s; animation-delay: 2s; font-size: 6rem;}
+        .note-icon:nth-child(3) { left: 70%; animation-duration: 14s; animation-delay: 4s; }
+        .note-icon:nth-child(4) { left: 90%; animation-duration: 20s; animation-delay: 1s; font-size: 5rem;}
+        .note-icon:nth-child(5) { left: 50%; animation-duration: 16s; animation-delay: 6s; }
+
+        /* --- LAYOUT UTILITIES --- */
+        .hidden { display: none !important; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; position: relative; z-index: 2; }
+        
+        /* --- BUTTONS --- */
+        .btn {
+            background: var(--primary); color: white; padding: 12px 24px; border: none; 
+            border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 700;
+            transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn:hover { transform: translateY(-3px); background: var(--primary-dark); box-shadow: 0 6px 12px rgba(0,0,0,0.2); }
+        .btn-secondary { background: var(--secondary); color: #004d4d; }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-outline:hover { background: var(--primary); color: white; }
+        .btn-hint { background: var(--warning); color: #5d4502; font-size: 0.9rem; padding: 8px 15px; margin-top: 10px; width: 100%; border-radius: 5px; border:none; cursor: pointer;}
+        .btn-danger { background: var(--accent); color: white; padding: 8px 16px; font-size: 0.9rem; border-radius: 20px;}
+
+        /* --- NAVIGATION --- */
+        nav { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); box-shadow: 0 4px 20px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        .nav-content { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; max-width: 1000px; margin: 0 auto; }
+        .logo { font-size: 1.8rem; font-weight: 800; color: var(--primary); letter-spacing: -1px; display: flex; align-items: center; gap: 10px; }
+        .nav-links { display: flex; gap: 20px; align-items: center; }
+        .nav-item { cursor: pointer; color: var(--dark); font-weight: 600; transition: color 0.2s; }
+        .nav-item:hover { color: var(--primary); }
+        .score-display { background: var(--dark); color: var(--secondary); padding: 8px 20px; border-radius: 20px; font-weight: bold; font-family: monospace; font-size: 1.1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+
+        /* --- GLASSMOPHISM CARDS --- */
+        .glass-panel {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* --- PRE-TEST --- */
+        .intro-box { text-align: center; max-width: 700px; margin: 60px auto; }
+        .quiz-option { display: block; width: 100%; padding: 18px; margin: 12px 0; border: 2px solid #e0e0e0; border-radius: 12px; cursor: pointer; transition: 0.3s; background: white; font-size: 1.1rem; text-align: left; font-weight: 500; color: var(--dark); }
+        .quiz-option:hover { border-color: var(--primary); transform: translateX(5px); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+
+        /* --- LESSONS GRID --- */
+        .lesson-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; margin-top: 30px; }
+        .lesson-card { 
+            background: var(--glass); padding: 25px; border-radius: 12px; transition: 0.3s; 
+            border-left: 6px solid var(--gray); cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            position: relative; overflow: hidden;
+        }
+        .lesson-card:hover { transform: translateY(-7px); border-left-color: var(--primary); background: var(--glass-hover); box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
+        .lesson-card.completed { border-left-color: var(--secondary); background: linear-gradient(to right, rgba(0, 210, 211, 0.1), white); }
+        .lesson-card.completed::after { content: '✓'; position: absolute; top: 15px; right: 15px; font-weight: bold; color: var(--secondary); font-size: 1.5rem; }
+        .category-tag { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); font-weight: 800; margin-bottom: 5px; display: inline-block;}
+
+        /* --- ACTIVE LESSON VIEW --- */
+        .lesson-view-container { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
+        .lesson-text h2 { color: var(--dark); margin-bottom: 25px; font-size: 2.2rem; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .lesson-text p { margin-bottom: 18px; color: #4a4a4a; font-size: 1.05rem; }
+        .lesson-text strong { color: var(--primary); }
+        .lesson-text ul { margin-left: 20px; margin-bottom: 25px; background: rgba(108, 99, 255, 0.05); padding: 20px 40px; border-radius: 8px; border-left: 4px solid var(--primary); }
+        .lesson-text li { margin-bottom: 10px; }
+        
+        /* Game Sidebar */
+        .game-sidebar { background: var(--dark); color: var(--white); padding: 30px; border-radius: 16px; height: fit-content; text-align: center; position: sticky; top: 100px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .game-area { margin-top: 20px; background: rgba(255,255,255,0.1); border-radius: 8px; padding: 20px; min-height: 150px; display: flex; flex-direction: column; justify-content: center; align-items: center;}
+        
+        /* --- FLEX PIANO --- */
+        .piano-wrapper { display: flex; flex-direction: column; align-items: center; margin: 50px 0; user-select: none; }
+        .piano-container { 
+            position: relative; height: 260px; width: 100%; max-width: 540px; 
+            background: #222; padding: 12px 12px 0 12px; border-radius: 10px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4); border-bottom: 8px solid #111;
+            display: flex; 
+        }
+        .white-key {
+            flex: 1; height: 240px; background: white; border: 1px solid #ccc; border-radius: 0 0 6px 6px;
+            position: relative; z-index: 1; cursor: pointer; display: flex; align-items: flex-end;
+            justify-content: center; padding-bottom: 15px; font-weight: bold; color: #bbb;
+            box-shadow: inset 0 -5px 10px rgba(0,0,0,0.1); transition: background 0.1s;
+        }
+        .white-key:active, .white-key.active { background: #f0f0f0; border-bottom: none; transform: translateY(3px); height: 237px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
+        .black-key {
+            position: absolute; width: 7%; height: 150px; background: linear-gradient(to bottom, #222, #000);
+            z-index: 2; border-radius: 0 0 5px 5px; cursor: pointer; box-shadow: 3px 3px 8px rgba(0,0,0,0.4);
+        }
+        .black-key:active, .black-key.active { background: #111; box-shadow: inset 0 0 5px rgba(255,255,255,0.2); transform: scale(0.98); }
+
+        /* Key Positions */
+        .key-cs { left: 9%; } .key-ds { left: 23%; } .key-fs { left: 49%; } .key-gs { left: 63%; } .key-as { left: 77%; }
+
+        @media (max-width: 800px) {
+            .lesson-view-container { grid-template-columns: 1fr; }
+            .game-sidebar { position: static; margin-top: 30px; }
+            .piano-container { height: 180px; }
+            .white-key { height: 170px; }
+            .black-key { height: 100px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="notes-bg">
+        <div class="note-icon">♪</div>
+        <div class="note-icon">♫</div>
+        <div class="note-icon">♩</div>
+        <div class="note-icon">♬</div>
+        <div class="note-icon">♭</div>
+    </div>
+
+    <nav id="navbar" class="hidden">
+        <div class="nav-content">
+            <div class="logo">🎹 Stepping Sounds</div>
+            <div class="nav-links">
+                <div class="nav-item" onclick="router('home')">Dashboard</div>
+                <div class="nav-item" onclick="router('lessons')">Curriculum</div>
+                <div class="nav-item" onclick="router('keyboard')">Studio</div>
+                <div class="score-display">Score: <span id="nav-score">0</span></div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <section id="view-landing" class="view-section">
+            <div class="intro-box glass-panel">
+                <h1 style="color:var(--primary); font-size: 2.5rem; margin-bottom: 10px;">Stepping Sounds</h1>
+                <p style="font-size: 1.2rem; margin-bottom: 30px;">Your interactive journey into the language of music.</p>
+                
+                <div id="quiz-container">
+                    <h3 id="quiz-question" style="margin-bottom: 15px;">Loading Assessment...</h3>
+                    <div id="quiz-progress" style="margin-bottom: 15px; color: var(--primary); font-weight: bold;">Question 1/10</div>
+                    <div id="quiz-options"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-home" class="view-section hidden">
+            <div class="glass-panel" style="text-align: center; margin-bottom: 30px;">
+                <h1>Welcome Back!</h1>
+                <p>You have access to <strong>20 Comprehensive Lessons</strong>. Complete mini-games to earn points.</p>
+                <div style="margin-top: 25px; display: flex; justify-content: center; gap: 15px;">
+                    <button class="btn" onclick="router('lessons')">Continue Learning</button>
+                    <button class="btn btn-outline" onclick="router('keyboard')">Open Piano Studio</button>
+                </div>
+                <div style="margin-top: 20px;">
+                     <button class="btn-danger" onclick="resetScore()">Reset My Progress</button>
+                </div>
+            </div>
+            
+            <h3 style="color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">Recommended for You</h3>
+            <div class="lesson-grid">
+                <div class="lesson-card" onclick="loadLesson(0)">
+                    <div class="category-tag">Fundamentals</div>
+                    <h3>1. The Musical Alphabet</h3>
+                    <p>Why are there only 7 notes? Understanding the loop.</p>
+                </div>
+                <div class="lesson-card" onclick="loadLesson(6)">
+                    <div class="category-tag">Chords</div>
+                    <h3>7. Building Triads</h3>
+                    <p>The mathematical formula for creating harmony.</p>
+                </div>
+                <div class="lesson-card" onclick="loadLesson(13)">
+                    <div class="category-tag">Harmony</div>
+                    <h3>14. The I-IV-V Progression</h3>
+                    <p>The secret code behind 90% of pop songs.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-lessons" class="view-section hidden">
+            <div class="glass-panel">
+                <h2 style="border-bottom: 2px solid #ddd; padding-bottom: 15px;">Complete Curriculum</h2>
+                <div class="lesson-grid" id="full-lesson-list"></div>
+            </div>
+        </section>
+
+        <section id="view-active-lesson" class="view-section hidden">
+            <button class="btn btn-secondary" onclick="router('lessons')" style="margin-bottom: 20px;">&larr; Back to Curriculum</button>
+            
+            <div class="lesson-view-container">
+                <div class="lesson-text glass-panel">
+                    <span class="category-tag" id="lesson-category">Category</span>
+                    <h2 id="lesson-title">Lesson Title</h2>
+                    <div id="lesson-body"></div>
+                </div>
+
+                <div class="game-sidebar">
+                    <h3 style="color: var(--secondary);">Challenge</h3>
+                    <p id="game-status" style="font-size: 0.8rem; margin-bottom: 10px; opacity: 0.7;">Not Completed</p>
+                    <p id="game-instructions">Follow the instructions below.</p>
+                    
+                    <div class="game-area" id="game-canvas"></div>
+
+                    <button id="hint-btn" class="btn btn-hint" onclick="toggleHint()">💡 Get a Hint</button>
+                    <p id="hint-text" class="hidden" style="margin-top:10px; font-style: italic; color: #feca57; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px;"></p>
+                    
+                    <div id="game-feedback" style="margin-top:15px; font-weight: bold; min-height: 25px;"></div>
+                    <button class="btn btn-outline" style="margin-top:15px; border-color:white; color:white;" onclick="resetGame()">Retry Challenge</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-keyboard" class="view-section hidden">
+            <div class="glass-panel" style="text-align: center;">
+                <h2>Free Play Studio</h2>
+                <p>Use your computer keyboard (A - K) or mouse/touch.</p>
+                
+                <div class="piano-wrapper">
+                    <div style="margin-bottom: 20px;">
+                        <button class="btn btn-secondary" onclick="changeOctave(-1)">Lower Octave</button>
+                        <span id="octave-disp" style="margin: 0 20px; font-weight: bold; font-size: 1.2rem;">Octave: 4</span>
+                        <button class="btn btn-secondary" onclick="changeOctave(1)">Higher Octave</button>
+                    </div>
+                    <div class="piano-container" id="main-piano"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        /* --- 1. STATE & SECURITY --- */
+        let userScore = 0;
+        let currentLesson = null;
+        let activeGameListener = null;
+        let completedLessons = new Set(); // Prevents point farming
+
+        function updateScore(points) {
+            userScore += points;
+            document.getElementById('nav-score').innerText = userScore;
+        }
+
+        function resetScore() {
+            userScore = 0;
+            completedLessons.clear();
+            updateScore(0);
+            renderLessonList(); // Removes visual checkmarks
+            alert("Progress reset!");
+        }
+
+        /* --- 2. DETAILED LESSON CONTENT --- */
+        const lessons = [
+            // PITCH & NOTES
+            { 
+                id: 0, cat: "Pitch & Notes", title: "1. The Musical Alphabet", 
+                body: `<p>In the world of music, things are surprisingly simple. While a standard alphabet has 26 letters, the Musical Alphabet only has 7: <strong>A, B, C, D, E, F, G</strong>.</p>
+                       <p>Once you reach G, the cycle doesn't stop. It simply wraps back around to A. This creates an infinite loop of notes getting higher and higher.</p>
+                       <ul>
+                           <li><strong>The Pattern:</strong> A-B-C-D-E-F-G... and then back to A.</li>
+                           <li><strong>Octave:</strong> The distance from one 'C' to the next 'C' (8 notes inclusive) is called an Octave. They sound like the "same" note, just higher or lower.</li>
+                       </ul>
+                       <p><strong>Pro Tip:</strong> On the piano, the note C is the easiest to find. Look for the group of <em>two black keys</em>. The white key immediately to the left is always C.</p>`,
+                gameType: "find-key", target: "C", prompt: "Find and click Middle C (Left of the 2 black keys).",
+                hint: "Look for the pair of two black keys. C is the white key to the left."
+            },
+            { 
+                id: 1, cat: "Pitch & Notes", title: "2. Sharps and Flats", 
+                body: `<p>If we only played white keys, music would be very limited. The black keys allow us to play "in-between" notes. These keys have two names depending on which direction you approach them from.</p>
+                       <ul>
+                           <li><strong>Sharp (#):</strong> Think of sitting on a tack—you jump UP! A Sharp symbol means to raise the note by one step (to the right). C# is the black key to the right of C.</li>
+                           <li><strong>Flat (b):</strong> Think of a flat tire—it goes DOWN. A Flat symbol means to lower the note by one step (to the left). Db is the black key to the left of D.</li>
+                       </ul>
+                       <p><strong>Interesting Fact:</strong> C# and Db are physically the same key on the piano. This concept is called <em>Enharmonic Equivalents</em>.</p>`,
+                gameType: "quiz", a: ["Sharp (#)", "Flat (b)", "Natural"], q: "Which symbol represents a note raised by one step?",
+                hint: "Think of sitting on a tack—you jump UP!"
+            },
+            { 
+                id: 2, cat: "Pitch & Notes", title: "3. Tones and Semitones", 
+                body: `<p>Musicians measure distance in "steps". Understanding these steps is crucial for building scales and chords later.</p>
+                       <ul>
+                           <li><strong>Semitone (Half Step):</strong> The distance from one key to the very next key, touching it. No keys are skipped. (e.g., C to C#, or E to F).</li>
+                           <li><strong>Tone (Whole Step):</strong> A distance of two semitones. You essentially skip one key. (e.g., C to D skips C#).</li>
+                       </ul>
+                       <p>Notice that between E & F and B & C, there are no black keys. These are natural semitones.</p>`,
+                gameType: "quiz", a: ["2 Semitones", "1 Semitone", "3 Semitones"], q: "How many semitones make up a Whole Tone?",
+                hint: "A Whole Tone is like taking two small steps."
+            },
+            
+            // SCALES
+            { 
+                id: 3, cat: "Scales", title: "4. The Major Scale", 
+                body: `<p>A scale is a sequence of notes that sounds good together. The <strong>Major Scale</strong> is the most important scale in Western music. It sounds happy, bright, and resolved.</p>
+                       <p>You can build a major scale starting on ANY note if you follow this magic formula of Tones (T) and Semitones (S):</p>
+                       <ul><li><strong>T - T - S - T - T - T - S</strong></li></ul>
+                       <p>If you start on C and follow this, you hit all the white keys: C-D-E-F-G-A-B-C.</p>`,
+                gameType: "sequence", sequence: ["C", "D", "E"], prompt: "Play the first 3 notes of C Major (C, D, E).",
+                hint: "They are all white keys, starting from C."
+            },
+            { 
+                id: 4, cat: "Scales", title: "5. The Minor Scale", 
+                body: `<p>While Major scales are happy, <strong>Minor Scales</strong> sound sad, serious, moody, or dramatic. They are used in sad songs or intense film scores.</p>
+                       <p>The difference lies in the 3rd note. In a Major scale, the 3rd note is "natural". In a Minor scale, the 3rd note is lowered (flattened).</p>
+                       <p><strong>Comparison:</strong> <br>C Major: C - D - E...<br>C Minor: C - D - Eb...</p>`,
+                gameType: "quiz", a: ["Sad / Moody", "Happy / Bright", "Fast / Energetic"], q: "Which emotion is usually associated with Minor scales?",
+                hint: "Major is happy, so Minor must be the opposite."
+            },
+            
+            // INTERVALS
+            { 
+                id: 5, cat: "Intervals", title: "6. The Perfect Fifth", 
+                body: `<p>An interval is simply the distance between two notes. The most stable and powerful interval in music is the <strong>Perfect Fifth</strong>.</p>
+                       <p>To find a fifth, you usually count up 7 semitones, or simply count 5 letter names inclusive (C, D, E, F, G). When played together, the root and the fifth create a sound that is hollow and very strong.</p>
+                       <p>This interval is the basis of "Power Chords" used in Rock and Punk music.</p>`,
+                gameType: "find-key", target: "G", prompt: "Find the Fifth of C (Hint: It's G).",
+                hint: "Count up 5 white keys starting from C: C, D, E, F..."
+            },
+
+            // CHORDS
+            { 
+                id: 6, cat: "Chords", title: "7. Major Triads", 
+                body: `<p>A single note is a melody; multiple notes played at once is <strong>Harmony</strong>. The most basic chord is a Triad (3 notes).</p>
+                       <p>A Major Triad is constructed by stacking thirds. You play the Root, skip a letter, play the 3rd, skip a letter, play the 5th.</p>
+                       <ul><li><strong>Formula:</strong> Root + Major 3rd + Perfect 5th</li><li><strong>C Major Chord:</strong> C - E - G</li></ul>`,
+                gameType: "chord", notes: ["C", "E", "G"], prompt: "Build a C Major Triad (Play C, E, G).",
+                hint: "Skip one white key between each note. Play C, skip D, play E..."
+            },
+            { 
+                id: 7, cat: "Chords", title: "8. Minor Triads", 
+                body: `<p>Just like scales, chords can be sad too. To turn a Major Triad into a Minor Triad, you only need to change one single note.</p>
+                       <p>Take the middle note (the 3rd) and lower it by one semitone. This flattens the 3rd.</p>
+                       <ul>
+                           <li><strong>C Major:</strong> C - E - G</li>
+                           <li><strong>C Minor:</strong> C - Eb - G</li>
+                       </ul>
+                       <p>This small change alters the emotional landscape of the chord completely.</p>`,
+                gameType: "quiz", a: ["Lower it 1 semitone", "Raise it 1 semitone", "Remove it"], q: "To make a chord minor, what do you do to the 3rd note?",
+                hint: "We need to make the interval smaller to make it sound sadder."
+            },
+            { 
+                id: 8, cat: "Chords", title: "9. Chord Inversions", 
+                body: `<p>Do you always have to play the chord with the root at the bottom? No! You can shuffle the order of the notes. This is called an <strong>Inversion</strong>.</p>
+                       <p>Inversions are useful because they allow a pianist to move between chords without jumping their hand all over the keyboard.</p>
+                       <ul>
+                           <li><strong>Root Position:</strong> C - E - G (C is at the bottom)</li>
+                           <li><strong>1st Inversion:</strong> E - G - C (C is at the top)</li>
+                           <li><strong>2nd Inversion:</strong> G - C - E (C is in the middle)</li>
+                       </ul>`,
+                gameType: "quiz", a: ["1st Inversion", "Root Position", "2nd Inversion"], q: "If you play E-G-C, what inversion is it?",
+                hint: "The Root (C) has moved to the top."
+            },
+            { 
+                id: 9, cat: "Chords", title: "10. Diminished Chords", 
+                body: `<p>We have Happy (Major) and Sad (Minor), but what about Scared? That's the <strong>Diminished Chord</strong>.</p>
+                       <p>A diminished chord is built by stacking two minor thirds. It sounds very unstable and tense. Your ear naturally wants the chord to resolve to something more pleasant.</p>
+                       <p>You will often hear this chord used in silent films when the villain ties someone to the train tracks!</p>`,
+                gameType: "quiz", a: ["Tense / Scary", "Happy", "Peaceful"], q: "Diminished chords sound...",
+                hint: "They are often used in horror movies."
+            },
+
+            // RHYTHM
+            { 
+                id: 10, cat: "Rhythm", title: "11. Time Signatures", 
+                body: `<p>At the start of sheet music, you see two numbers (e.g., 4/4). This is the Time Signature. It tells you how to count.</p>
+                       <ul>
+                           <li><strong>Top Number:</strong> How many beats are in a bar.</li>
+                           <li><strong>Bottom Number:</strong> Which note value gets the beat.</li>
+                       </ul>
+                       <p><strong>4/4</strong> (Common Time) is counted "1-2-3-4".<br><strong>3/4</strong> (Waltz Time) is counted "1-2-3".</p>`,
+                gameType: "quiz", a: ["3/4", "4/4", "5/4"], q: "Which time signature is used for a Waltz?",
+                hint: "Think of a ballroom dance: ONE-two-three, ONE-two-three."
+            },
+            { 
+                id: 11, cat: "Rhythm", title: "12. Note Values", 
+                body: `<p>How long do you hold a note? The shape of the note tells you.</p>
+                       <ul>
+                           <li><strong>Whole Note (Circle):</strong> 4 Beats. Hold it for a whole measure in 4/4.</li>
+                           <li><strong>Half Note (Empty head with stem):</strong> 2 Beats.</li>
+                           <li><strong>Quarter Note (Filled head with stem):</strong> 1 Beat. This is the standard "tap your foot" beat.</li>
+                           <li><strong>Eighth Note (Flag):</strong> 1/2 Beat. Counted as "1-and-2-and".</li>
+                       </ul>`,
+                gameType: "quiz", a: ["2 Beats", "4 Beats", "1 Beat"], q: "How many beats is a Half Note?",
+                hint: "It is half of a Whole note (which is 4)."
+            },
+            { 
+                id: 12, cat: "Rhythm", title: "13. Tempo (BPM)", 
+                body: `<p><strong>Tempo</strong> is the speed of the music. We measure this in <strong>BPM</strong> (Beats Per Minute).</p>
+                       <ul>
+                           <li><strong>60 BPM:</strong> One beat per second (like a clock). Very slow.</li>
+                           <li><strong>120 BPM:</strong> A standard march or disco speed.</li>
+                           <li><strong>170+ BPM:</strong> Very fast (Drum and Bass or Punk).</li>
+                       </ul>
+                       <p>Classical music uses Italian terms: <em>Adagio</em> (Slow), <em>Andante</em> (Walking pace), <em>Allegro</em> (Fast).</p>`,
+                gameType: "quiz", a: ["Beats Per Minute", "Beats Per Month", "Bass Per Measure"], q: "What does BPM stand for?",
+                hint: "It measures how fast the song goes in sixty seconds."
+            },
+
+            // HARMONY
+            { 
+                id: 13, cat: "Harmony", title: "14. The I-IV-V Progression", 
+                body: `<p>Why do so many songs sound the same? Because they use the <strong>1-4-5 (I-IV-V)</strong> progression.</p>
+                       <p>In any key, the 1st, 4th, and 5th chords are the "Pillars of Harmony". They outline the key perfectly.</p>
+                       <p><strong>In C Major:</strong><br>I = C Major<br>IV = F Major<br>V = G Major</p>
+                       <p>Play these three chords, and you can sing "La Bamba", "Twist and Shout", and hundreds of other hits.</p>`,
+                gameType: "chord", notes: ["C", "F", "G"], prompt: "Find the roots of I, IV, V (Play C, F, G).",
+                hint: "Count up the scale: 1 is C, 4 is F, 5 is G."
+            },
+            { 
+                id: 14, cat: "Harmony", title: "15. The ii-V-I Jazz Progression", 
+                body: `<p>If I-IV-V is the sound of Rock, the <strong>ii-V-I (2-5-1)</strong> is the sound of Jazz.</p>
+                       <p>The progression moves in "Fourths", which sounds very satisfying to the ear. It creates a strong pull back to the home chord (the I).</p>
+                       <p>In C Major, this would be: <strong>D Minor (ii) -> G Major (V) -> C Major (I)</strong>.</p>`,
+                gameType: "quiz", a: ["Jazz", "Heavy Metal", "Punk"], q: "Which genre is famous for the ii-V-I?",
+                hint: "This genre involves a lot of improvisation and swing."
+            },
+
+            // EAR & APPLIED
+            { 
+                id: 15, cat: "Ear Training", title: "16. Pitch Direction", 
+                body: `<p>A fundamental skill is recognizing if a note goes UP or DOWN.</p>
+                       <p><strong>On a Keyboard:</strong><br>Moving to the <strong>Right</strong> makes the notes higher (Treble).<br>Moving to the <strong>Left</strong> makes the notes lower (Bass).</p>
+                       <p>The further right you go, the faster the strings are vibrating!</p>`,
+                gameType: "quiz", a: ["Higher", "Lower", "Same"], q: "Moving to the right makes the pitch...",
+                hint: "Think of climbing up a ladder."
+            },
+            { 
+                id: 16, cat: "Applied Theory", title: "17. Key Signatures", 
+                body: `<p>Imagine if a song had 100 F-sharps. It would be annoying to write the sharp symbol (#) next to every single F note.</p>
+                       <p>Instead, we use a <strong>Key Signature</strong>. We write the sharp symbol ONCE at the very beginning of the line. This tells the musician: "Every time you see an F, play F# instead."</p>
+                       <p>This cleans up the music and makes it easier to read.</p>`,
+                gameType: "quiz", a: ["Start of the music", "End of the music", "Middle"], q: "Where is the Key Signature found?",
+                hint: "You need to know the key before you play the first note."
+            },
+            { 
+                id: 17, cat: "Applied Theory", title: "18. The Circle of Fifths", 
+                body: `<p>The <strong>Circle of Fifths</strong> is the "Periodic Table" of music. It is a circular diagram that arranges the 12 keys by the number of sharps or flats they contain.</p>
+                       <ul>
+                           <li>It helps you compose music.</li>
+                           <li>It shows you which keys are "relatives" (share similar notes).</li>
+                           <li>It helps you modulate (change key) smoothly.</li>
+                       </ul>`,
+                gameType: "quiz", a: ["Key Relationships", "Rhythm", "Drum Beats"], q: "The Circle of Fifths explains...",
+                hint: "It's about Harmony and Keys, not time."
+            },
+            { 
+                id: 18, cat: "Reading Music", title: "19. The Treble Clef", 
+                body: `<p>The <strong>Treble Clef</strong> (looks like a fancy G) is used for higher pitched instruments like the Violin, Flute, Guitar, and the Right Hand of the piano.</p>
+                       <p>The notes on the lines are: <strong>E - G - B - D - F</strong>.</p>
+                       <p>A common mnemonic to remember this is: <em>Every Good Boy Deserves Fruit (or Fudge)</em>.</p>`,
+                gameType: "quiz", a: ["Every Good Boy...", "All Cows Eat...", "FACE"], q: "Mnemonic for Treble Clef lines?",
+                hint: "It starts with E and ends with F."
+            },
+            { 
+                id: 19, cat: "Reading Music", title: "20. The Bass Clef", 
+                body: `<p>The <strong>Bass Clef</strong> (looks like an ear with two dots) is used for low pitched instruments like the Cello, Tuba, Bass Guitar, and the Left Hand of the piano.</p>
+                       <p>The notes on the lines are: <strong>G - B - D - F - A</strong>.</p>
+                       <p>The mnemonic is: <em>Good Boys Do Fine Always</em>.</p>`,
+                gameType: "quiz", a: ["Left Hand", "Right Hand", "Both"], q: "Bass clef is usually played with which hand?",
+                hint: "The lower notes are usually on the left side of the piano."
+            }
+        ];
+
+        /* --- 3. PIANO ENGINE --- */
+        let audioContext = null;
+        let currentOctave = 4;
+        const noteFreqs = {
+            'C': 261.63, 'C#': 277.18, 'D': 293.66, 'D#': 311.13, 'E': 329.63,
+            'F': 349.23, 'F#': 369.99, 'G': 392.00, 'G#': 415.30, 'A': 440.00, 'A#': 466.16, 'B': 493.88
+        };
+
+        function initAudio() {
+            if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function playTone(freq) {
+            initAudio();
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.type = 'triangle'; /* Changed to Triangle for softer sound */
+            osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+            gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 1.5);
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.start();
+            osc.stop(audioContext.currentTime + 1.5);
+        }
+
+        function renderPiano(containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            const whites = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C2'];
+            const blacks = [
+                { note: 'C#', pos: 'key-cs' }, { note: 'D#', pos: 'key-ds' },
+                { note: 'F#', pos: 'key-fs' }, { note: 'G#', pos: 'key-gs' }, { note: 'A#', pos: 'key-as' }
+            ];
+
+            whites.forEach(note => {
+                const k = document.createElement('div');
+                k.className = 'white-key';
+                k.dataset.note = note.replace('2', ''); 
+                k.innerHTML = `<span style="pointer-events:none; margin-bottom:5px;">${note.replace('2','')}</span>`;
+                k.onmousedown = () => handleKey(note, k);
+                container.appendChild(k);
+            });
+
+            blacks.forEach(b => {
+                const k = document.createElement('div');
+                k.className = `black-key ${b.pos}`;
+                k.dataset.note = b.note;
+                k.onmousedown = () => handleKey(b.note, k);
+                container.appendChild(k);
+            });
+        }
+
+        function handleKey(note, el) {
+            el.classList.add('active');
+            setTimeout(() => el.classList.remove('active'), 200);
+            
+            let playNote = note.replace('2', ''); 
+            let freq = noteFreqs[playNote];
+            if(note === 'C2') freq = noteFreqs['C'] * 2;
+            const mult = Math.pow(2, currentOctave - 4);
+            playTone(freq * mult);
+
+            if(activeGameListener) activeGameListener(playNote);
+        }
+
+        function changeOctave(dir) {
+            currentOctave += dir;
+            if(currentOctave < 2) currentOctave = 2;
+            if(currentOctave > 6) currentOctave = 6;
+            document.getElementById('octave-disp').innerText = "Octave: " + currentOctave;
+        }
+
+        /* --- 4. PRE-TEST --- */
+        const quizQuestions = [
+            { q: "Have you studied music theory before?", o: ["No, I'm a beginner", "A little bit", "Yes, strictly"], correct: 0 },
+            { q: "Which of these is a low pitch instrument?", o: ["Double Bass", "Flute", "Piccolo"], correct: 0 },
+            { q: "How many letters are in the musical alphabet?", o: ["7 (A-G)", "26 (A-Z)", "12 (Chromatic)"], correct: 0 },
+            { q: "Which symbol raises a note's pitch?", o: ["Sharp (#)", "Flat (b)", "Natural"], correct: 0 },
+            { q: "A triad is a chord made of how many notes?", o: ["3", "2", "4"], correct: 0 },
+            { q: "What does BPM stand for?", o: ["Beats Per Minute", "Bass Per Measure", "Big Piano Music"], correct: 0 },
+            { q: "Which scale usually sounds 'Happy'?", o: ["Major", "Minor", "Diminished"], correct: 0 },
+            { q: "The standard time signature 4/4 means?", o: ["4 beats per bar", "3 beats per bar", "4 bars per song"], correct: 0 },
+            { q: "On a piano, the right hand usually plays...", o: ["Higher notes", "Lower notes", "The pedals"], correct: 0 },
+            { q: "What is the interval from C to G?", o: ["A Fifth", "An Octave", "A Third"], correct: 0 }
+        ];
+        
+        let quizIndex = 0;
+
+        function renderQuiz() {
+            if(quizIndex >= quizQuestions.length) {
+                document.getElementById('navbar').classList.remove('hidden');
+                router('home');
+                return;
+            }
+            
+            const q = quizQuestions[quizIndex];
+            document.getElementById('quiz-question').innerText = q.q;
+            document.getElementById('quiz-progress').innerText = `Question ${quizIndex + 1} of 10`;
+            const optContainer = document.getElementById('quiz-options');
+            optContainer.innerHTML = '';
+            
+            let displayOptions = q.o.map((txt, i) => ({txt, isCorrect: i === 0}));
+            displayOptions.sort(() => Math.random() - 0.5);
+
+            displayOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-option';
+                btn.innerText = opt.txt;
+                btn.onclick = () => { quizIndex++; renderQuiz(); };
+                optContainer.appendChild(btn);
+            });
+        }
+
+        /* --- 5. APP LOGIC & GAME ENGINE --- */
+        function router(view) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`view-${view}`).classList.remove('hidden');
+            window.scrollTo(0,0);
+            
+            if(view === 'lessons') renderLessonList();
+            if(view === 'keyboard') renderPiano('main-piano');
+        }
+
+        function renderLessonList() {
+            const list = document.getElementById('full-lesson-list');
+            list.innerHTML = '';
+            lessons.forEach(l => {
+                const isDone = completedLessons.has(l.id) ? 'completed' : '';
+                list.innerHTML += `
+                    <div class="lesson-card ${isDone}" onclick="loadLesson(${l.id})">
+                        <div class="category-tag">${l.cat}</div>
+                        <h3>${l.title}</h3>
+                    </div>
+                `;
+            });
+        }
+
+        function loadLesson(id) {
+            currentLesson = lessons[id];
+            
+            document.getElementById('lesson-category').innerText = currentLesson.cat;
+            document.getElementById('lesson-title').innerText = currentLesson.title;
+            document.getElementById('lesson-body').innerHTML = currentLesson.body;
+            
+            // Check completion status
+            const statusEl = document.getElementById('game-status');
+            if(completedLessons.has(id)) {
+                statusEl.innerText = "✓ Completed";
+                statusEl.style.color = "#00D2D3";
+                statusEl.style.opacity = "1";
+            } else {
+                statusEl.innerText = "Not Completed";
+                statusEl.style.color = "white";
+                statusEl.style.opacity = "0.7";
+            }
+
+            // Reset Hint
+            document.getElementById('hint-text').classList.add('hidden');
+            document.getElementById('hint-text').innerText = currentLesson.hint;
+            document.getElementById('hint-btn').style.display = 'inline-block';
+            
+            setupGame();
+            router('active-lesson');
+        }
+
+        function toggleHint() {
+            document.getElementById('hint-text').classList.remove('hidden');
+            document.getElementById('hint-btn').style.display = 'none';
+        }
+
+        function handleWin(points) {
+            const fb = document.getElementById('game-feedback');
+            
+            // SECURITY CHECK: Only award points if not already completed
+            if (!completedLessons.has(currentLesson.id)) {
+                completedLessons.add(currentLesson.id);
+                updateScore(points);
+                fb.innerText = `Correct! +${points} Points`;
+                fb.style.color = "#00D2D3";
+                document.getElementById('game-status').innerText = "✓ Completed";
+                document.getElementById('game-status').style.color = "#00D2D3";
+            } else {
+                fb.innerText = "Correct! (Already completed)";
+                fb.style.color = "#ccc";
+            }
+            activeGameListener = null; // Stop game
+        }
+
+        function setupGame() {
+            const canvas = document.getElementById('game-canvas');
+            const feedback = document.getElementById('game-feedback');
+            const instruct = document.getElementById('game-instructions');
+            
+            feedback.innerText = "";
+            canvas.innerHTML = "";
+            activeGameListener = null;
+
+            if(currentLesson.gameType === 'quiz') {
+                instruct.innerText = currentLesson.q;
+                const correctAnswer = currentLesson.a[0];
+                let options = [...currentLesson.a];
+                options.sort(() => Math.random() - 0.5);
+
+                options.forEach(ans => {
+                    const b = document.createElement('button');
+                    b.className = "btn btn-secondary";
+                    b.style.margin = "5px";
+                    b.innerText = ans;
+                    b.onclick = () => {
+                        if(ans === correctAnswer) {
+                            handleWin(10);
+                            b.style.background = "#00D2D3";
+                        } else {
+                            feedback.innerText = "Incorrect. Try again.";
+                            feedback.style.color = "#FF6B6B";
+                            b.style.background = "#FF6B6B";
+                        }
+                    };
+                    canvas.appendChild(b);
+                });
+            }
+            else {
+                instruct.innerText = currentLesson.prompt;
+                const miniId = 'mini-piano-' + Date.now();
+                const pDiv = document.createElement('div');
+                pDiv.id = miniId;
+                pDiv.className = 'piano-container';
+                pDiv.style.transform = "scale(0.85)";
+                pDiv.style.transformOrigin = "top center";
+                canvas.appendChild(pDiv);
+                
+                setTimeout(() => renderPiano(miniId), 0);
+
+                if(currentLesson.gameType === 'find-key') {
+                    activeGameListener = (note) => {
+                        if(note === currentLesson.target) {
+                            handleWin(10);
+                        } else {
+                            feedback.innerText = `That is ${note}. Try again.`;
+                            feedback.style.color = "#FF6B6B";
+                        }
+                    };
+                }
+                else if(currentLesson.gameType === 'sequence' || currentLesson.gameType === 'chord') {
+                    let progress = [];
+                    activeGameListener = (note) => {
+                        if(currentLesson.gameType === 'sequence' && currentLesson.sequence[progress.length] === note) {
+                             progress.push(note);
+                             feedback.innerText = `Good! ${progress.join('-')}...`;
+                             if(progress.length === currentLesson.sequence.length) {
+                                 handleWin(20);
+                             }
+                        } 
+                        else if(currentLesson.gameType === 'chord') {
+                            if(currentLesson.notes.includes(note)) {
+                                if(!progress.includes(note)) progress.push(note);
+                                if(progress.length === currentLesson.notes.length) {
+                                    handleWin(20);
+                                } else {
+                                    feedback.innerText = `Notes found: ${progress.length}/${currentLesson.notes.length}`;
+                                }
+                            }
+                        }
+                    };
+                }
+            }
+        }
+
+        function resetGame() {
+            setupGame();
+        }
+
+        // Keyboard Support
+        const keyMap = { 'a':'C', 'w':'C#', 's':'D', 'e':'D#', 'd':'E', 'f':'F', 't':'F#', 'g':'G', 'y':'G#', 'h':'A', 'u':'A#', 'j':'B', 'k':'C' };
+        document.addEventListener('keydown', (e) => {
+            if(keyMap[e.key]) {
+                const note = keyMap[e.key];
+                const keys = document.querySelectorAll(`div[data-note="${note}"]`);
+                if(e.key === 'k' && keys.length > 1) handleKey('C2', keys[1]);
+                else if(keys.length > 0) handleKey(note, keys[0]);
+            }
+        });
+
+        // Init
+        renderQuiz();
+
+    </script>
+</body>
+</html>
